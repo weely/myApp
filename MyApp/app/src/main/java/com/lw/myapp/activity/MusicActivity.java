@@ -13,7 +13,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
@@ -73,13 +72,24 @@ public class MusicActivity extends Activity implements View.OnClickListener {
                         }
                         break;
                     case 2:
-                        tvSongName.setText(musicInfoLists.get(currentItem).getTitle());
+                        //tvSongName.setText(musicInfoLists.get(currentItem).getTitle());
                         tvCurrentTime.setText(MusicUtil.formatTime(currentTime));
                         long res = musicInfoLists.get(currentItem).getDuration() - currentTime;
                         tvResTime.setText(MusicUtil.formatTime(res));
                         seekBar.setProgress(currentTime);
                         break;
                     case 3:
+                        tvSongName.setText(musicInfoLists.get(currentItem).getTitle());
+                        if (isPlay) {
+                            btnPlay.setImageResource(R.drawable.pause_selector);
+                        } else {
+                            btnPlay.setImageResource(R.drawable.play_selector);
+                        }
+                        tvCurrentTime.setText(MusicUtil.formatTime(currentTime));
+                        seekBar.setMax((int) musicInfoLists.get(currentItem).getDuration());
+                        long res2 = musicInfoLists.get(currentItem).getDuration() - currentTime;
+                        tvResTime.setText(MusicUtil.formatTime(res2));
+                        seekBar.setProgress(currentTime);
                         break;
                     default:
                         break;
@@ -93,6 +103,9 @@ public class MusicActivity extends Activity implements View.OnClickListener {
         @Override
         public void onServiceConnected(ComponentName name, final IBinder service) {
             currentItem = ((MusicService.MusicBinder)service).getCurrentItem();
+            isPlay = ((MusicService.MusicBinder)service).getPlayStatus();
+            currentTime = ((MusicService.MusicBinder)service).getCurrentTime();
+            handler.sendEmptyMessage(3);
         }
 
         @Override
@@ -108,7 +121,6 @@ public class MusicActivity extends Activity implements View.OnClickListener {
 
         initView();
         addListener();
-
         musicService = new Intent(MusicActivity.this, MusicService.class);
         bindService(musicService, conn, Context.BIND_AUTO_CREATE);
 
@@ -155,12 +167,11 @@ public class MusicActivity extends Activity implements View.OnClickListener {
         musicListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                Log.i("weely", "--1--" + musicInfoLists.get(position).getUrl());
                 currentItem = position;
                 message.what = 1;
                 handler.sendEmptyMessage(message.what);
                 startMusicService(PLAY_FLAG, musicInfoLists.get(currentItem).getUrl(), currentItem, 0);
+                drawerLayout.closeDrawer(musicListView);
             }
         });
 
@@ -179,7 +190,6 @@ public class MusicActivity extends Activity implements View.OnClickListener {
             public void onStopTrackingTouch(SeekBar seekBar) {
                 if (musicInfoLists == null || musicInfoLists.isEmpty()) return;
                 int progress = seekBar.getProgress();
-                Log.i("weely", "2---" + progress);
                 startMusicService(PROGRESS_FLAG, musicInfoLists.get(currentItem).getUrl(), currentItem, progress);
             }
         });
@@ -231,7 +241,6 @@ public class MusicActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.btn_previous:
                 currentItem = currentItem <= 0 ? (musicInfoLists.size() - 1) : --currentItem;
-                Log.i("weely", "" + playType);
                 startMusicService(PREVIOUS_FLAG, musicInfoLists.get(currentItem).getUrl(), currentItem, 0);
                 break;
             case R.id.btn_play:
@@ -244,7 +253,6 @@ public class MusicActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.btn_play_type:
                 playType = playType >= 4 ? 1 : ++playType;
-                Log.i("weely", "1---" + playType);
                 btnPlayType.setImageResource(playTypeImgs[playType - 1]);
                 Intent sendPlayTypeBroadcast = new Intent("UPDATE_PLAY_TYPE");
                 sendPlayTypeBroadcast.putExtra("PLAY_TYPE", playType);
@@ -257,6 +265,7 @@ public class MusicActivity extends Activity implements View.OnClickListener {
 
     @Override
     protected void onDestroy() {
+        unbindService(conn);
         unregisterReceiver(musicBroadReceiver);
         super.onDestroy();
     }

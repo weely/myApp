@@ -74,7 +74,7 @@ public class MusicInfoAdapter extends BaseAdapter {
             holder.img.setImageResource(R.mipmap.ic_launcher);
         } else {
             BitmapDrawable bmpDraw = new BitmapDrawable(null, bm);
-            holder.img.setImageDrawable(bmpDraw);
+           holder.img.setImageDrawable(bmpDraw);
         }
         if (position == selectItem) {
             convertView.setBackgroundColor(Color.argb(66, 66, 66, 66));
@@ -85,7 +85,7 @@ public class MusicInfoAdapter extends BaseAdapter {
         return convertView;
     }
 
-    private void setSelectItem(int selectItem) {
+    public void setSelectItem(int selectItem) {
         this.selectItem = selectItem;
     }
 

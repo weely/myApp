@@ -10,7 +10,6 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
 
 import com.lw.myapp.model.MusicInfo;
 import com.lw.myapp.util.MusicUtil;
@@ -28,7 +27,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     private int currentItem;
     private List<MusicInfo> musicInfoLists;
     private int playType = 2;       //播放模式; 1、单曲循环 2、循序播放 3、循环播放 4、随机播放
-    //private boolean isPlay = false;
+    private boolean isPlay = false;
     private PlayTypeReceiver receiver;
     private Handler handler = new Handler() {
 
@@ -79,7 +78,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             case 5:             //pause
                 if (player != null && player.isPlaying()) {
                     player.pause();
-                    //isPlay = false;
+                    isPlay = false;
                 }
                 break;
             default:
@@ -100,6 +99,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             case 2:
                 currentItem++;
                 if (currentItem >= musicInfoLists.size()) {
+                    isPlay = false;
                     return;
                 }
                 break;
@@ -122,10 +122,10 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
     @Override
     public void onDestroy() {
-        Log.i("weely", "---4--Destroy-");
         if (player != null) {
             player.stop();
             player.release();
+            isPlay = false;
             player = null;
         }
         unregisterReceiver(receiver);
@@ -144,6 +144,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
                         if (currentTime > 0) {
                             player.seekTo(currentTime);
                         }
+                        isPlay = true;
                     }
                 }
             });
@@ -157,6 +158,12 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         public int getCurrentItem() {
             return currentItem;
         }
+        public boolean getPlayStatus () {
+            return isPlay;
+        }
+        public int getCurrentTime() {
+            return currentTime;
+        }
     }
 
     private class PlayTypeReceiver extends BroadcastReceiver{
@@ -165,7 +172,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             String action = intent.getAction();
             if ("UPDATE_PLAY_TYPE".equals(action)) {
                 playType = intent.getIntExtra("PLAY_TYPE", -1);
-                Log.i("weely", "2---" + playType);
             }
         }
     }
