@@ -52,6 +52,7 @@ public class MusicActivity extends Activity implements View.OnClickListener {
     private SeekBar seekBar;
     private DrawerLayout drawerLayout;
     private ViewPager viewPager;
+    private MusicInfoAdapter musicAdapter;
 
     private boolean isPlay = false;
     private int currentItem, currentTime;
@@ -62,7 +63,7 @@ public class MusicActivity extends Activity implements View.OnClickListener {
         public void handleMessage(Message msg) {
             if (musicInfoLists != null) {
                 switch (msg.what) {
-                    case 1:
+                    case 1:         //play
                         tvSongName.setText(musicInfoLists.get(currentItem).getTitle());
                         seekBar.setMax((int) musicInfoLists.get(currentItem).getDuration());
                         if (isPlay) {
@@ -70,9 +71,9 @@ public class MusicActivity extends Activity implements View.OnClickListener {
                         } else {
                             btnPlay.setImageResource(R.drawable.play_selector);
                         }
+                        musicListView.setSelection(currentItem);
                         break;
                     case 2:
-                        //tvSongName.setText(musicInfoLists.get(currentItem).getTitle());
                         tvCurrentTime.setText(MusicUtil.formatTime(currentTime));
                         long res = musicInfoLists.get(currentItem).getDuration() - currentTime;
                         tvResTime.setText(MusicUtil.formatTime(res));
@@ -80,17 +81,22 @@ public class MusicActivity extends Activity implements View.OnClickListener {
                         break;
                     case 3:
                         tvSongName.setText(musicInfoLists.get(currentItem).getTitle());
+                        seekBar.setMax((int) musicInfoLists.get(currentItem).getDuration());
                         if (isPlay) {
                             btnPlay.setImageResource(R.drawable.pause_selector);
                         } else {
                             btnPlay.setImageResource(R.drawable.play_selector);
                         }
+                        musicListView.setSelection(currentItem);
                         tvCurrentTime.setText(MusicUtil.formatTime(currentTime));
-                        seekBar.setMax((int) musicInfoLists.get(currentItem).getDuration());
                         long res2 = musicInfoLists.get(currentItem).getDuration() - currentTime;
                         tvResTime.setText(MusicUtil.formatTime(res2));
                         seekBar.setProgress(currentTime);
                         break;
+                    case 4:
+                        drawerLayout.closeDrawer(musicListView);
+                        //musicAdapter.setSelectItem(currentItem);
+                        //musicAdapter.notifyDataSetInvalidated();
                     default:
                         break;
                 }
@@ -161,17 +167,14 @@ public class MusicActivity extends Activity implements View.OnClickListener {
         btnReback.setOnClickListener(this);
         btnPlayType.setOnClickListener(this);
 
-        final MusicInfoAdapter musicAdapter = new MusicInfoAdapter(musicInfoLists, MusicActivity.this);
-
+        musicAdapter = new MusicInfoAdapter(musicInfoLists, MusicActivity.this);
         musicListView.setAdapter(musicAdapter);
         musicListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 currentItem = position;
-                message.what = 1;
-                handler.sendEmptyMessage(message.what);
                 startMusicService(PLAY_FLAG, musicInfoLists.get(currentItem).getUrl(), currentItem, 0);
-                drawerLayout.closeDrawer(musicListView);
+                handler.sendEmptyMessageDelayed(4, 1000);
             }
         });
 

@@ -5,11 +5,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.util.Log;
 
 import com.lw.myapp.model.MusicInfo;
 import com.lw.myapp.util.MusicUtil;
@@ -20,7 +22,7 @@ import java.util.List;
  * Created by Lw on 2016/12/8.
  */
 
-public class MusicService extends Service implements MediaPlayer.OnCompletionListener {
+public class MusicService extends Service {
     private MediaPlayer player;
     private String musicUrl;
     private int currentTime;
@@ -56,6 +58,42 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         player = new MediaPlayer();
         musicInfoLists = MusicUtil.getMusicLists(getApplicationContext());
 
+        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                Log.i("weely", "onCompletion--0");
+                switch (playType) {
+                    case 1:
+                        Log.i("weely", "onCompletion--1");
+                        player.start();
+                        return;
+                    case 2:
+                        currentItem++;
+                        Log.i("weely", "onCompletion--2");
+                        if (currentItem >= musicInfoLists.size()) {
+                            isPlay = false;
+                            return;
+                        }
+                        break;
+                    case 3:
+                        Log.i("weely", "onCompletion--3");
+                        currentItem++;
+                        currentItem = currentItem >= musicInfoLists.size() ? 0 : currentItem;
+                        break;
+                    case 4:
+                        currentItem = (int) (Math.random() * (musicInfoLists.size() - 1));
+                        break;
+                    default:
+                        break;
+                }
+                Intent sendBroadcast = new Intent("UPDATE_ACTION");
+                sendBroadcast.putExtra("CURRENT_ITEM", currentItem);
+                sendBroadcast(sendBroadcast);
+                musicUrl = musicInfoLists.get(currentItem).getUrl();
+                play(0);
+            }
+        });
+
         receiver = new PlayTypeReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction("UPDATE_PLAY_TYPE");
@@ -86,38 +124,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         }
         /*Bundle bundle = intent.getBundleExtra("MUSIC_BUNDLE");
         musicInfoLists = (List<MusicInfo>) bundle.getSerializable("MUSIC_LISTS");*/
-
         return super.onStartCommand(intent, flags, startId);
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer mp) {
-        switch (playType) {
-            case 1:
-                player.isLooping();
-                return;
-            case 2:
-                currentItem++;
-                if (currentItem >= musicInfoLists.size()) {
-                    isPlay = false;
-                    return;
-                }
-                break;
-            case 3:
-                currentItem++;
-                currentItem = currentItem >= musicInfoLists.size() ? 0 : currentItem;
-                break;
-            case 4:
-                currentItem = (int) Math.random() * (musicInfoLists.size() - 1);
-                break;
-            default:
-                break;
-        }
-        Intent sendBroadcast = new Intent("UPDATE_ACTION");
-        sendBroadcast.putExtra("CURRENT_ITEM", currentItem);
-        sendBroadcast(sendBroadcast);
-        musicUrl = musicInfoLists.get(currentItem).getUrl();
-        play(0);
     }
 
     @Override
@@ -134,6 +141,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     private void play(final int currentTime) {
         try {
             player.reset();
+            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
             player.setDataSource(musicUrl);
             player.prepare();
             player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
