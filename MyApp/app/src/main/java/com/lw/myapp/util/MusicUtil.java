@@ -80,6 +80,9 @@ public class MusicUtil {
         return album_art != null ? BitmapFactory.decodeFile(album_art) : null;
     }
 
+    /**
+     * 时间格式转换
+     */
     public static String formatTime(long time) {
         long hour = time / 3600000;
         long minute = (time - hour * 3600000) / 60000;

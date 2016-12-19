@@ -11,9 +11,11 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
 
+import com.lw.myapp.activity.MusicActivity;
+import com.lw.myapp.model.LrcInfo;
 import com.lw.myapp.model.MusicInfo;
+import com.lw.myapp.util.LrcUtil;
 import com.lw.myapp.util.MusicUtil;
 
 import java.util.List;
@@ -28,6 +30,9 @@ public class MusicService extends Service {
     private int currentTime;
     private int currentItem;
     private List<MusicInfo> musicInfoLists;
+    private List<LrcInfo> lrcInfos;
+    private int index = 0;
+
     private int playType = 2;       //播放模式; 1、单曲循环 2、循序播放 3、循环播放 4、随机播放
     private boolean isPlay = false;
     private PlayTypeReceiver receiver;
@@ -61,22 +66,18 @@ public class MusicService extends Service {
         player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                Log.i("weely", "onCompletion--0");
                 switch (playType) {
                     case 1:
-                        Log.i("weely", "onCompletion--1");
                         player.start();
                         return;
                     case 2:
                         currentItem++;
-                        Log.i("weely", "onCompletion--2");
                         if (currentItem >= musicInfoLists.size()) {
                             isPlay = false;
                             return;
                         }
                         break;
                     case 3:
-                        Log.i("weely", "onCompletion--3");
                         currentItem++;
                         currentItem = currentItem >= musicInfoLists.size() ? 0 : currentItem;
                         break;
@@ -152,6 +153,7 @@ public class MusicService extends Service {
                         if (currentTime > 0) {
                             player.seekTo(currentTime);
                         }
+                        initLrc();
                         isPlay = true;
                     }
                 }
@@ -162,7 +164,59 @@ public class MusicService extends Service {
         }
     }
 
+    public void initLrc(){
+        lrcInfos = LrcUtil.readLRC(musicUrl);
+        MusicActivity.lrcView.setLrcInfos(lrcInfos);
+        handler.post(mRunnable);
+    }
+
+    private Runnable mRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            if (lrcInfos == null || lrcInfos.isEmpty()) {
+                return;
+            } else {
+                MusicActivity.lrcView.setIndex(lrcIndex());
+                MusicActivity.lrcView.invalidate();
+                handler.postDelayed(mRunnable, 100);
+            }
+        }
+    };
+
+    public int lrcIndex() {
+        long duration = 0;
+        if(player.isPlaying()) {
+            currentTime = player.getCurrentPosition();
+            duration = player.getDuration();
+        }
+        if (currentTime < duration) {
+            for (int i = 0; i < lrcInfos.size(); i++) {
+                if (i < lrcInfos.size() - 1) {
+                    if ((currentTime < lrcInfos.get(i).getLrcTime() && i == 0) ||
+                            (currentTime > lrcInfos.get(i).getLrcTime() && currentTime < lrcInfos.get(i + 1).getLrcTime())) {
+                        index = i;
+                    }
+                }
+                if (i == lrcInfos.size() - 1 && currentTime > lrcInfos.get(i).getLrcTime()) {
+                    index = i;
+                }
+            }
+        }
+        return index;
+    }
+
     public class MusicBinder extends Binder {
+        /*private List<Object> list;
+        public List<Object> getInfos() {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                }
+            }).start();
+            return list;
+        }*/
+
         public int getCurrentItem() {
             return currentItem;
         }

@@ -13,7 +13,9 @@ import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -22,10 +24,14 @@ import android.widget.TextView;
 
 import com.lw.myapp.R;
 import com.lw.myapp.adapter.MusicInfoAdapter;
+import com.lw.myapp.adapter.ViewPagerAdapter;
+import com.lw.myapp.model.LrcInfo;
 import com.lw.myapp.model.MusicInfo;
 import com.lw.myapp.services.MusicService;
 import com.lw.myapp.util.MusicUtil;
+import com.lw.myapp.view.LrcView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,8 +47,8 @@ public class MusicActivity extends Activity implements View.OnClickListener {
     public final static int PAUSE_FLAG = 5;
     private int[] playTypeImgs = {R.mipmap.icon_playing_mode_repeat_cur, R.mipmap.icon_playing_mode_normal,
             R.mipmap.icon_playing_mode_repeat_all, R.mipmap.icon_playing_mode_shuffle};
-
     private List<MusicInfo> musicInfoLists;
+    private List<LrcInfo> lrcInfos;
     private ListView musicListView;
     private MusicBroatcastReceiver musicBroadReceiver;
     private Intent musicService;
@@ -52,7 +58,9 @@ public class MusicActivity extends Activity implements View.OnClickListener {
     private SeekBar seekBar;
     private DrawerLayout drawerLayout;
     private ViewPager viewPager;
+    private ViewPagerAdapter viewPagerAdapter;
     private MusicInfoAdapter musicAdapter;
+    public static LrcView lrcView;
 
     private boolean isPlay = false;
     private int currentItem, currentTime;
@@ -108,9 +116,9 @@ public class MusicActivity extends Activity implements View.OnClickListener {
     private ServiceConnection conn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, final IBinder service) {
-            currentItem = ((MusicService.MusicBinder)service).getCurrentItem();
-            isPlay = ((MusicService.MusicBinder)service).getPlayStatus();
-            currentTime = ((MusicService.MusicBinder)service).getCurrentTime();
+            currentItem = ((MusicService.MusicBinder) service).getCurrentItem();
+            isPlay = ((MusicService.MusicBinder) service).getPlayStatus();
+            currentTime = ((MusicService.MusicBinder) service).getCurrentTime();
             handler.sendEmptyMessage(3);
         }
 
@@ -129,7 +137,6 @@ public class MusicActivity extends Activity implements View.OnClickListener {
         addListener();
         musicService = new Intent(MusicActivity.this, MusicService.class);
         bindService(musicService, conn, Context.BIND_AUTO_CREATE);
-
         musicBroadReceiver = new MusicBroatcastReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction("UPDATE_ACTION");
@@ -145,7 +152,6 @@ public class MusicActivity extends Activity implements View.OnClickListener {
     private void initView() {
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         musicListView = (ListView) findViewById(R.id.musicListView);
-        musicInfoLists = MusicUtil.getMusicLists(MusicActivity.this);
         tvSongName = (TextView) findViewById(R.id.tv_song_name);
         tvCurrentTime = (TextView) findViewById(R.id.tv_current_time);
         tvResTime = (TextView) findViewById(R.id.tv_res_time);
@@ -157,15 +163,53 @@ public class MusicActivity extends Activity implements View.OnClickListener {
         btnPlayType = (ImageButton) findViewById(R.id.btn_play_type);
         seekBar = (SeekBar) findViewById(R.id.sbar_music);
         viewPager = (ViewPager) findViewById(R.id.viewpager_music);
+
+        musicInfoLists = MusicUtil.getMusicLists(MusicActivity.this);
+
+        addChildView();
+    }
+
+    public void addChildView() {
+        List<View> viewLists = new ArrayList<View>();
+        View mainMusicView = getLayoutInflater().inflate(R.layout.music_main_layout, (ViewGroup) findViewById(R.id.main_music_view));
+        lrcView = new LrcView(MusicActivity.this);
+
+
+        viewLists.add(mainMusicView);
+        viewLists.add(lrcView);
+        viewPagerAdapter = new ViewPagerAdapter(viewLists);
+        viewPager.setAdapter(viewPagerAdapter);
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+            }
+        });
+
+        lrcView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+
+                return false;
+            }
+        });
     }
 
     private void addListener() {
         btnlist.setOnClickListener(this);
+        btnReback.setOnClickListener(this);
+        btnPlayType.setOnClickListener(this);
         btnPrevious.setOnClickListener(this);
         btnPlay.setOnClickListener(this);
         btnNext.setOnClickListener(this);
-        btnReback.setOnClickListener(this);
-        btnPlayType.setOnClickListener(this);
 
         musicAdapter = new MusicInfoAdapter(musicInfoLists, MusicActivity.this);
         musicListView.setAdapter(musicAdapter);
@@ -220,10 +264,10 @@ public class MusicActivity extends Activity implements View.OnClickListener {
         });
     }
 
-    private void startMusicService(int play_flag, String url, int position, int time) {
-        isPlay = play_flag == PAUSE_FLAG ? false : true;
+    private void startMusicService(int flag, String url, int position, int time) {
+        isPlay = flag == PAUSE_FLAG ? false : true;
         Intent service = new Intent(MusicActivity.this, MusicService.class);
-        service.putExtra("PLAY_MSG", play_flag);
+        service.putExtra("PLAY_MSG", flag);
         service.putExtra("MUSIC_URL", url);
         service.putExtra("CURRENT_TIME", time);
         service.putExtra("CURRENT_ITEM", position);
@@ -233,24 +277,28 @@ public class MusicActivity extends Activity implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (musicInfoLists == null || musicInfoLists.isEmpty()) return;
-
         switch (v.getId()) {
             case R.id.btn_list:
-
+                drawerLayout.openDrawer(musicListView);
                 break;
             case R.id.btn_reback:
                 onBackPressed();
                 break;
             case R.id.btn_previous:
+                if (musicInfoLists == null || musicInfoLists.isEmpty()) return;
+
                 currentItem = currentItem <= 0 ? (musicInfoLists.size() - 1) : --currentItem;
                 startMusicService(PREVIOUS_FLAG, musicInfoLists.get(currentItem).getUrl(), currentItem, 0);
                 break;
             case R.id.btn_play:
+                if (musicInfoLists == null || musicInfoLists.isEmpty()) return;
+
                 int playFlag = isPlay ? PAUSE_FLAG : PLAY_FLAG;
                 startMusicService(playFlag, musicInfoLists.get(currentItem).getUrl(), currentItem, currentTime);
                 break;
             case R.id.btn_next:
+                if (musicInfoLists == null || musicInfoLists.isEmpty()) return;
+
                 currentItem = currentItem >= (musicInfoLists.size() - 1) ? 0 : ++currentItem;
                 startMusicService(NEXT_FLAG, musicInfoLists.get(currentItem).getUrl(), currentItem, 0);
                 break;
@@ -294,13 +342,4 @@ public class MusicActivity extends Activity implements View.OnClickListener {
             }
         }
     }
-
-    /*@Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-
-        }
-
-        return super.onKeyDown(keyCode, event);
-    }*/
 }
