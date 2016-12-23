@@ -63,9 +63,9 @@ public class GuideActivity extends AppCompatActivity {
             imageView.setLayoutParams(new LinearLayout.LayoutParams(10, 10));
             tips[i] = imageView;
             if (i == 0) {
-                tips[i].setBackgroundResource(R.drawable.page_indicator_focused);
+                tips[i].setBackgroundResource(R.mipmap.page_indicator_focused);
             } else {
-                tips[i].setBackgroundResource(R.drawable.page_indicator_unfocused);
+                tips[i].setBackgroundResource(R.mipmap.page_indicator_unfocused);
             }
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(new ViewGroup.LayoutParams(
                     ViewPager.LayoutParams.WRAP_CONTENT, ViewPager.LayoutParams.WRAP_CONTENT));
@@ -88,9 +88,9 @@ public class GuideActivity extends AppCompatActivity {
             public void onPageSelected(int position) {
                 for (int i = 0; i < tips.length; i++) {
                     if (i == position % imgIdArray.length) {
-                        tips[i].setBackgroundResource(R.drawable.page_indicator_focused);
+                        tips[i].setBackgroundResource(R.mipmap.page_indicator_focused);
                     } else {
-                        tips[i].setBackgroundResource(R.drawable.page_indicator_unfocused);
+                        tips[i].setBackgroundResource(R.mipmap.page_indicator_unfocused);
                     }
                 }
                 if (position == imgIdArray.length - 1) {

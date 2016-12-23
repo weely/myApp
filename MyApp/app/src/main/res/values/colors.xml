@@ -8,4 +8,9 @@
     <color name="colorRed">#ffff0000</color>
     <color name="colorTxt1">#e7f5e7</color>
     <color name="bg_transparent">#00000000</color>
+    <color name="roundColor">#32ffffff</color>
+    <color name="roundProgressColor">#96ffffff</color>
+    <color name="progressPointColor">#f1cbcb</color>
+    <color name="textColor">#d8faff</color>
+    progressPointColor
 </resources>

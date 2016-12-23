@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.widget.TextView;
 
 import com.lw.myapp.model.LrcInfo;
@@ -22,8 +23,8 @@ public class LrcView extends TextView {
     private float width, height;
     private float txtHeight = 40;
     private float txtSize = 35;
-    private int buttomSize = 50;
     private int index = 0;
+    private float drawY;
 
     public LrcView(Context context) {
         super(context);
@@ -50,7 +51,7 @@ public class LrcView extends TextView {
 
     private void init() {
         setFocusable(true);
-        curPaint = producePaint(Color.argb(210, 251, 248, 29), 40, Typeface.SERIF);
+        curPaint = producePaint(Color.argb(210, 251, 248, 29), txtHeight, Typeface.SERIF);
         noCurPaint = producePaint(Color.argb(140, 255, 255, 255), txtSize, Typeface.DEFAULT);
     }
 
@@ -60,13 +61,13 @@ public class LrcView extends TextView {
         if (canvas == null) return;
         try {
             setText("");
-            canvas.drawText(lrcInfos.get(index).getLrcContent(), width / 2, height / 2, curPaint);
-            float drawY = height / 2;
+            drawY = (index + 1) * txtHeight < height / 2 ? (index + 1) * txtHeight : height / 2;
+            canvas.drawText(lrcInfos.get(index).getLrcContent(), width / 2, drawY, curPaint);
             for (int i = index - 1; i > 0; i--) {
                 drawY -= txtHeight + txtSize / 2;
                 canvas.drawText(lrcInfos.get(i).getLrcContent(), width / 2, drawY, noCurPaint);
             }
-            drawY = height / 2;
+            drawY = (index + 1) * txtHeight < height / 2 ? (index + 1) * txtHeight : height / 2;
             for (int i = index + 1; i < lrcInfos.size(); i++) {
                 drawY += txtHeight + txtSize / 2;
                 canvas.drawText(lrcInfos.get(i).getLrcContent(), width / 2, drawY, noCurPaint);
@@ -80,15 +81,25 @@ public class LrcView extends TextView {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         this.width = w;
-        this.height = h - txtSize;
+        this.height = h;
     }
 
-    private static Paint producePaint(int color, float txtSize, Typeface typeface) {
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            float posY = event.getY();
+
+            invalidate();
+        }
+        return true;
+    }
+
+    private static Paint producePaint(int color, float size, Typeface typeface) {
         Paint paint = new Paint();
         paint.setAntiAlias(true);
         paint.setTextAlign(Paint.Align.CENTER);
         paint.setColor(color);
-        paint.setTextSize(txtSize);
+        paint.setTextSize(size);
         paint.setTypeface(typeface);
         return paint;
     }

@@ -96,6 +96,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="0.25"
                 android:weightSum="1"
+                android:background="@color/bg_transparent"
                 android:orientation="horizontal">
                 <TextView
                     android:id="@+id/tv_current_time"

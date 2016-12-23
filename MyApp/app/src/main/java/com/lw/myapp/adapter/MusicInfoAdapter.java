@@ -2,8 +2,8 @@ package com.lw.myapp.adapter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.lw.myapp.R;
 import com.lw.myapp.model.MusicInfo;
 import com.lw.myapp.util.MusicUtil;
+import com.lw.myapp.view.RoundImageDrawable;
 
 import java.util.List;
 
@@ -71,11 +72,12 @@ public class MusicInfoAdapter extends BaseAdapter {
 
         Bitmap bm = MusicUtil.getAlbumArt(musicInfo.getAlbumId(), context);
         if (bm == null) {
-            holder.img.setImageResource(R.mipmap.ic_launcher);
+            Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.saber);
+            holder.img.setImageDrawable(new RoundImageDrawable(bitmap, RoundImageDrawable.RoundType.TYPE_ROUND));
         } else {
-            BitmapDrawable bmpDraw = new BitmapDrawable(null, bm);
-           holder.img.setImageDrawable(bmpDraw);
+            holder.img.setImageDrawable(new RoundImageDrawable(bm, RoundImageDrawable.RoundType.TYPE_ROUND));
         }
+        holder.img.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         if (position == selectItem) {
             convertView.setBackgroundColor(Color.argb(66, 66, 66, 66));
         } else {

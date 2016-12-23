@@ -7,17 +7,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -30,6 +33,9 @@ import com.lw.myapp.model.MusicInfo;
 import com.lw.myapp.services.MusicService;
 import com.lw.myapp.util.MusicUtil;
 import com.lw.myapp.view.LrcView;
+import com.lw.myapp.view.MyDrawable;
+import com.lw.myapp.view.RoundImageDrawable;
+import com.lw.myapp.view.RoundProgressBar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +68,9 @@ public class MusicActivity extends Activity implements View.OnClickListener {
     private MusicInfoAdapter musicAdapter;
     public static LrcView lrcView;
 
+    private FrameLayout mainMusicView;
+    private RoundProgressBar progressBar;
+
     private boolean isPlay = false;
     private int currentItem, currentTime;
     private int playType = 2;
@@ -72,8 +81,11 @@ public class MusicActivity extends Activity implements View.OnClickListener {
             if (musicInfoLists != null) {
                 switch (msg.what) {
                     case 1:         //play
-                        tvSongName.setText(musicInfoLists.get(currentItem).getTitle());
-                        seekBar.setMax((int) musicInfoLists.get(currentItem).getDuration());
+                        tvSongName.setText(musicInfoLists.get(currentItem).getTitle()
+                                + "-" + musicInfoLists.get(currentItem).getArtist());
+                        int duration = (int) musicInfoLists.get(currentItem).getDuration();
+                        seekBar.setMax(duration);
+                        progressBar.setMax(duration);
                         if (isPlay) {
                             btnPlay.setImageResource(R.drawable.pause_selector);
                         } else {
@@ -86,10 +98,14 @@ public class MusicActivity extends Activity implements View.OnClickListener {
                         long res = musicInfoLists.get(currentItem).getDuration() - currentTime;
                         tvResTime.setText(MusicUtil.formatTime(res));
                         seekBar.setProgress(currentTime);
+                        progressBar.setProgress(currentTime);
                         break;
                     case 3:
-                        tvSongName.setText(musicInfoLists.get(currentItem).getTitle());
-                        seekBar.setMax((int) musicInfoLists.get(currentItem).getDuration());
+                        tvSongName.setText(musicInfoLists.get(currentItem).getTitle()
+                                + "-" + musicInfoLists.get(currentItem).getArtist());
+                        int duration2 = (int) musicInfoLists.get(currentItem).getDuration();
+                        seekBar.setMax(duration2);
+                        progressBar.setMax(duration2);
                         if (isPlay) {
                             btnPlay.setImageResource(R.drawable.pause_selector);
                         } else {
@@ -100,6 +116,7 @@ public class MusicActivity extends Activity implements View.OnClickListener {
                         long res2 = musicInfoLists.get(currentItem).getDuration() - currentTime;
                         tvResTime.setText(MusicUtil.formatTime(res2));
                         seekBar.setProgress(currentTime);
+                        progressBar.setProgress(currentTime);
                         break;
                     case 4:
                         drawerLayout.closeDrawer(musicListView);
@@ -108,6 +125,7 @@ public class MusicActivity extends Activity implements View.OnClickListener {
                     default:
                         break;
                 }
+                //progressBar.invalidate();
             }
             super.handleMessage(msg);
         }
@@ -171,10 +189,19 @@ public class MusicActivity extends Activity implements View.OnClickListener {
 
     public void addChildView() {
         List<View> viewLists = new ArrayList<View>();
-        View mainMusicView = getLayoutInflater().inflate(R.layout.music_main_layout, (ViewGroup) findViewById(R.id.main_music_view));
+        //MyHorizontalScrollView mainMusicView = new MyHorizontalScrollView(MusicActivity.this);
+        mainMusicView = (FrameLayout) getLayoutInflater().
+                inflate(R.layout.music_main_layout, (ViewGroup) findViewById(R.id.main_music_viewGroup));
+        progressBar = (RoundProgressBar) mainMusicView.findViewById(R.id.music_progressBar);
+        progressBar.postInvalidate();
+
+        ImageView imageView = (ImageView) mainMusicView.findViewById(R.id.main_music_view);
+        Bitmap bitmap = BitmapFactory.decodeResource(MusicActivity.this.getResources(), R.mipmap.item01);
+        imageView.setImageDrawable(new RoundImageDrawable(bitmap));
+        //imageView.setAlpha((float)0.8);
+        drawerLayout.setBackground(new MyDrawable(bitmap));
+
         lrcView = new LrcView(MusicActivity.this);
-
-
         viewLists.add(mainMusicView);
         viewLists.add(lrcView);
         viewPagerAdapter = new ViewPagerAdapter(viewLists);
@@ -194,13 +221,6 @@ public class MusicActivity extends Activity implements View.OnClickListener {
             }
         });
 
-        lrcView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-
-                return false;
-            }
-        });
     }
 
     private void addListener() {
@@ -218,7 +238,7 @@ public class MusicActivity extends Activity implements View.OnClickListener {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 currentItem = position;
                 startMusicService(PLAY_FLAG, musicInfoLists.get(currentItem).getUrl(), currentItem, 0);
-                handler.sendEmptyMessageDelayed(4, 1000);
+                handler.sendEmptyMessageDelayed(4, 100);
             }
         });
 

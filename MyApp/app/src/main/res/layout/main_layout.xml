@@ -1,22 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_transparent">
+    android:background="@color/bg_transparent"
+    android:orientation="vertical"
+    android:weightSum="1">
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="0dp"
+        android:layout_weight="0.25"
+        android:orientation="horizontal">
 
     </LinearLayout>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="hello world"/>
-    <ImageButton
-        android:id="@+id/btnMusic"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:src="@mipmap/ic_launcher"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.45"
+        android:layout_margin="10dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.5"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnMusic"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:scaleType="centerInside"
+                android:background="@color/bg_transparent"
+                android:src="@drawable/music_item_seletor" />
+
+            <ImageButton
+                android:id="@+id/btnMovie"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:scaleType="centerInside"
+                android:background="@color/bg_transparent"
+                android:src="@drawable/music_item_seletor" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.5"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnPicture"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:scaleType="centerInside"
+                android:background="@color/bg_transparent"
+                android:src="@drawable/music_item_seletor" />
+
+            <ImageButton
+                android:id="@+id/btnFile"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:scaleType="centerInside"
+                android:background="@color/bg_transparent"
+                android:src="@drawable/music_item_seletor" />
+        </LinearLayout>
+    </LinearLayout>
 
 </LinearLayout>

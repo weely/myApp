@@ -4,7 +4,7 @@ package com.lw.myapp.model;
  * Created by Lw on 2016/12/16.
  */
 
-public class LrcInfo {
+public class LrcInfo implements Comparable<LrcInfo> {
     private String lrcContent;
     private int lrcTime;
 
@@ -31,5 +31,15 @@ public class LrcInfo {
 
     public void setLrcTime(int lrcTime) {
         this.lrcTime = lrcTime;
+    }
+
+    @Override
+    public int compareTo(LrcInfo o) {
+        return this.getLrcTime() - o.getLrcTime();
+    }
+
+    @Override
+    public String toString() {
+        return this.getLrcTime() + this.getLrcContent();
     }
 }

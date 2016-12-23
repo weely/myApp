@@ -42,6 +42,7 @@ public class MusicUtil {
             cursor.moveToNext();
             long id = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media._ID));                //音乐id
             String title = cursor.getString((cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)));     //音乐标题
+            //title = EncodingUtils.getString(title.getBytes(), "utf-8");
             String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));     //艺术家
             String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));       //唱片
             String album_id = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID));       //专辑图片ID
@@ -60,6 +61,8 @@ public class MusicUtil {
                 musicLists.add(musicInfo);
             }
         }
+        cursor.close();
+
         return musicLists;
     }
 
@@ -82,6 +85,9 @@ public class MusicUtil {
 
     /**
      * 时间格式转换
+     *
+     * @param time 毫秒数
+     * @return 00:00或00:00:00格式
      */
     public static String formatTime(long time) {
         long hour = time / 3600000;
@@ -152,28 +158,29 @@ public class MusicUtil {
 
     /**
      * 获取专辑封面位图对象
+     *
      * @param context
      * @param song_id
      * @param album_id
      * @param allowdefalut
      * @return
      */
-    public static Bitmap getArtwork(Context context, long song_id, long album_id, boolean allowdefalut, boolean small){
-        if(album_id < 0) {
-            if(song_id > 0) {
+    public static Bitmap getArtwork(Context context, long song_id, long album_id, boolean allowdefalut, boolean small) {
+        if (album_id < 0) {
+            if (song_id > 0) {
                 Bitmap bm = getArtworkFromFile(context, song_id, -1);
-                if(bm != null) {
+                if (bm != null) {
                     return bm;
                 }
             }
-            if(allowdefalut) {
+            if (allowdefalut) {
                 return getDefaultArtwork(context, small);
             }
             return null;
         }
         ContentResolver res = context.getContentResolver();
         Uri uri = ContentUris.withAppendedId(albumArtUri, album_id);
-        if(uri != null) {
+        if (uri != null) {
             InputStream in = null;
             try {
                 in = res.openInputStream(uri);
@@ -184,9 +191,9 @@ public class MusicUtil {
                 options.inJustDecodeBounds = true;
                 //调用此方法得到options得到图片的大小
                 BitmapFactory.decodeStream(in, null, options);
-                if(small){
+                if (small) {
                     options.inSampleSize = computeSampleSize(options, 40);
-                } else{
+                } else {
                     options.inSampleSize = computeSampleSize(options, 600);
                 }
                 // 我们得到了缩放比例，现在开始正式读入Bitmap数据
@@ -196,20 +203,20 @@ public class MusicUtil {
                 return BitmapFactory.decodeStream(in, null, options);
             } catch (FileNotFoundException e) {
                 Bitmap bm = getArtworkFromFile(context, song_id, album_id);
-                if(bm != null) {
-                    if(bm.getConfig() == null) {
+                if (bm != null) {
+                    if (bm.getConfig() == null) {
                         bm = bm.copy(Bitmap.Config.RGB_565, false);
-                        if(bm == null && allowdefalut) {
+                        if (bm == null && allowdefalut) {
                             return getDefaultArtwork(context, small);
                         }
                     }
-                } else if(allowdefalut) {
+                } else if (allowdefalut) {
                     bm = getDefaultArtwork(context, small);
                 }
                 return bm;
             } finally {
                 try {
-                    if(in != null) {
+                    if (in != null) {
                         in.close();
                     }
                 } catch (IOException e) {
@@ -222,6 +229,7 @@ public class MusicUtil {
 
     /**
      * 对图片进行合适的缩放
+     *
      * @param options
      * @param target
      * @return
@@ -232,16 +240,16 @@ public class MusicUtil {
         int candidateW = w / target;
         int candidateH = h / target;
         int candidate = Math.max(candidateW, candidateH);
-        if(candidate == 0) {
+        if (candidate == 0) {
             return 1;
         }
-        if(candidate > 1) {
-            if((w > target) && (w / candidate) < target) {
+        if (candidate > 1) {
+            if ((w > target) && (w / candidate) < target) {
                 candidate -= 1;
             }
         }
-        if(candidate > 1) {
-            if((h > target) && (h / candidate) < target) {
+        if (candidate > 1) {
+            if ((h > target) && (h / candidate) < target) {
                 candidate -= 1;
             }
         }

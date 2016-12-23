@@ -45,7 +45,7 @@ public class MusicService extends Service {
                     Intent sendCurrentTimeBrostcast = new Intent("CURRENT_TIME");
                     sendCurrentTimeBrostcast.putExtra("CURRENT_TIME", currentTime);
                     sendBroadcast(sendCurrentTimeBrostcast);
-                    handler.sendEmptyMessageDelayed(1, 1000);
+                    handler.sendEmptyMessageDelayed(1, 100);
                 }
             }
             super.handleMessage(msg);
@@ -166,6 +166,9 @@ public class MusicService extends Service {
 
     public void initLrc(){
         lrcInfos = LrcUtil.readLRC(musicUrl);
+        /*InputStream is = LrcUtil.getLrcFromNet(musicInfoLists.get(currentItem).getArtist(),
+                musicInfoLists.get(currentItem).getTitle());
+        lrcInfos = LrcUtil.getLrcsFromInputStream(is);*/
         MusicActivity.lrcView.setLrcInfos(lrcInfos);
         handler.post(mRunnable);
     }
