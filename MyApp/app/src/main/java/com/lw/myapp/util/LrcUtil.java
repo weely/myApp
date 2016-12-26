@@ -119,14 +119,12 @@ public class LrcUtil {
         InputStream is = null;
         BufferedReader reader = null;
         StringBuffer sb = null;
-        InputStream isLrc = null;
         try {
             PATH += songName + "/" + singer;
             URL url = new URL(PATH);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(2000);
             if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                Log.i("weely", "http连接失败");
                 return null;
             }
             conn.connect();
@@ -140,7 +138,7 @@ public class LrcUtil {
             conn.disconnect();
             reader.close();
             is.close();
-            isLrc = jsonParser(sb.toString());
+            return jsonParser(sb.toString());
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (MalformedURLException e) {
@@ -150,8 +148,7 @@ public class LrcUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        return is;
+        return null;
     }
 
     public static InputStream jsonParser(String url) {
@@ -161,14 +158,18 @@ public class LrcUtil {
             JSONArray jsonArray = jo.getJSONArray("result");
             JSONObject Object = jsonArray.getJSONObject(0);
             String lrcPath = Object.getString("lrc");
+            if ("".equals(lrcPath)) {
+                return null;
+            }
             URL lrcUrl = new URL(lrcPath);
             HttpURLConnection connection = (HttpURLConnection) lrcUrl.openConnection();
-            connection.setConnectTimeout(2000);
+            connection.setConnectTimeout(1000);
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 return null;
             }
             connection.connect();
             is = connection.getInputStream();
+            return is;
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (MalformedURLException e) {
@@ -176,59 +177,8 @@ public class LrcUtil {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return is;
+        return null;
     }
-
-    /*public static List<LrcInfo> getLrcsFromInputStream(InputStream is) {
-        List<LrcInfo> lrcLists = null;
-        StringBuffer sb = null;
-        BufferedReader reader = null;
-        try {
-            if (is == null) {
-                return null;
-            }
-            lrcLists = new ArrayList<LrcInfo>();
-            reader = new BufferedReader(new InputStreamReader(is));
-            sb = new StringBuffer();
-            String line = null;
-            int lrcTime = 0;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("[ti:")) {
-                    lrcLists.add(new LrcInfo(line.substring(4, line.lastIndexOf("]")), 0));
-                } else if (line.startsWith("[ar:")) {
-                    //  lrcLists.add(new LrcInfo(s.substring(4, s.lastIndexOf("]")),2500));
-                } else if (line.startsWith("[al:")) {
-                    //	lrcLists.add(new LrcInfo(s.substring(4, s.lastIndexOf("]")),5000));
-                } else if (line.startsWith("[by:")) {
-                    //	lrcLists.add(new LrcInfo(s.substring(4, s.lastIndexOf("]")),7500));
-                } else if (line.startsWith("[la:")) {
-                } else {
-                    if (line.startsWith("[x-trans]")) {
-                        lrcLists.add(new LrcInfo(line.substring(line.lastIndexOf("]") + 1), lrcTime));
-                    } else {
-                        String splitLrcData[] = line.replace("[", "").split("]");
-                        int len = splitLrcData.length;
-                        for (int i = 0; i < len; i++) {
-                            LrcInfo mLrcInfo = new LrcInfo();
-                            if (i < len - 1) {
-                                lrcTime = formatStrToTime(splitLrcData[i]);
-                                mLrcInfo.setLrcContent(splitLrcData[len - 1] + "");
-                                mLrcInfo.setLrcTime(lrcTime);
-                                lrcLists.add(mLrcInfo);
-                            }
-                        }
-                    }
-                }
-            }
-            reader.close();
-            is.close();
-        } catch (IOException e) {
-            return null;
-        } catch (Exception e) {
-            return null;
-        }
-        return lrcLists;
-    }*/
 
     public static void downLrc(String fileUrl, InputStream is) {
         fileUrl = fileUrl.replace(".mp3", ".lrc");
@@ -241,17 +191,16 @@ public class LrcUtil {
         }
         try {
             File file = new File(fileUrl);
-            /*if(file.exists()){
+            if(file.exists()){
                 Log.i("weely", "歌词已存在");
 				return;
-			}*/
+			}
             os = new FileOutputStream(file);
             reader = new BufferedReader(new InputStreamReader(is));
             sb = new StringBuffer();
             String line = null;
             while ((line = reader.readLine()) != null) {
                 sb.append(line + "\r\n");
-                Log.i("weely", line);
             }
             os.write(sb.toString().getBytes());
             os.flush();

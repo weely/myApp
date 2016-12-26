@@ -90,7 +90,9 @@ public class RoundProgressBar extends View {
         int centerY = getHeight() / 2;
         int radius = (int) ((centerX <= centerY ? centerX : centerY) - roundWidth / 2);
         canvas.drawCircle(centerX, centerY, radius, paint);
+        canvas.save();
 
+        canvas.rotate(-90, centerX, centerY);   //画布以中心点逆时针旋转90度；
         int progressRadius = radius;
         RectF oval = new RectF(centerX - progressRadius, centerY - progressRadius,
                 centerX + progressRadius, centerY + progressRadius);
@@ -111,6 +113,17 @@ public class RoundProgressBar extends View {
         float y = (float) (centerY + progressRadius * Math.sin(DOUBLE_PI * progress / max));
         canvas.drawCircle(x, y, pointRadios, pointPaint);
     }
+
+    private class MyHolder {
+        private int progress;
+        private int max;
+
+        public MyHolder(int progress, int max) {
+            this.progress = progress;
+            this.max = max;
+        }
+    }
+
 
     public synchronized int getMax() {
         return max;

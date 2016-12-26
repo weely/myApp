@@ -17,6 +17,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -199,7 +200,11 @@ public class MusicActivity extends Activity implements View.OnClickListener {
         Bitmap bitmap = BitmapFactory.decodeResource(MusicActivity.this.getResources(), R.mipmap.item01);
         imageView.setImageDrawable(new RoundImageDrawable(bitmap));
         //imageView.setAlpha((float)0.8);
-        drawerLayout.setBackground(new MyDrawable(bitmap));
+        WindowManager wm = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
+        int width = wm.getDefaultDisplay().getWidth();
+        int height = wm.getDefaultDisplay().getHeight();
+
+        drawerLayout.setBackground(new MyDrawable(bitmap,height,width));
 
         lrcView = new LrcView(MusicActivity.this);
         viewLists.add(mainMusicView);

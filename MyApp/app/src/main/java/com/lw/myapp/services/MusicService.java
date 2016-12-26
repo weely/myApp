@@ -18,6 +18,8 @@ import com.lw.myapp.model.MusicInfo;
 import com.lw.myapp.util.LrcUtil;
 import com.lw.myapp.util.MusicUtil;
 
+import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -165,10 +167,19 @@ public class MusicService extends Service {
     }
 
     public void initLrc(){
+        File f = new File(musicUrl.replace(".mp3", ".lrc"));
+        if (!f.exists()) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    InputStream is = LrcUtil.getLrcFromNet(musicInfoLists.get(currentItem).getArtist(),
+                            musicInfoLists.get(currentItem).getTitle());
+                    LrcUtil.downLrc(musicUrl, is);
+                    lrcInfos = LrcUtil.readLRC(musicUrl);
+                }
+            }).start();
+        }
         lrcInfos = LrcUtil.readLRC(musicUrl);
-        /*InputStream is = LrcUtil.getLrcFromNet(musicInfoLists.get(currentItem).getArtist(),
-                musicInfoLists.get(currentItem).getTitle());
-        lrcInfos = LrcUtil.getLrcsFromInputStream(is);*/
         MusicActivity.lrcView.setLrcInfos(lrcInfos);
         handler.post(mRunnable);
     }
