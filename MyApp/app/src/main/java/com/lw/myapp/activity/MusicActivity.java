@@ -1,6 +1,9 @@
 package com.lw.myapp.activity;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -13,6 +16,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.view.View;
@@ -154,6 +159,9 @@ public class MusicActivity extends Activity implements View.OnClickListener {
 
         initView();
         addListener();
+
+        //addNotification();
+
         musicService = new Intent(MusicActivity.this, MusicService.class);
         bindService(musicService, conn, Context.BIND_AUTO_CREATE);
         musicBroadReceiver = new MusicBroatcastReceiver();
@@ -204,7 +212,7 @@ public class MusicActivity extends Activity implements View.OnClickListener {
         int width = wm.getDefaultDisplay().getWidth();
         int height = wm.getDefaultDisplay().getHeight();
 
-        drawerLayout.setBackground(new MyDrawable(bitmap,height,width));
+        drawerLayout.setBackground(new MyDrawable(bitmap, height, width));
 
         lrcView = new LrcView(MusicActivity.this);
         viewLists.add(mainMusicView);
@@ -225,7 +233,6 @@ public class MusicActivity extends Activity implements View.OnClickListener {
             public void onPageScrollStateChanged(int state) {
             }
         });
-
     }
 
     private void addListener() {
@@ -298,6 +305,43 @@ public class MusicActivity extends Activity implements View.OnClickListener {
         service.putExtra("CURRENT_ITEM", position);
         startService(service);
         handler.sendEmptyMessage(1);
+    }
+
+    private void addNotification() {
+        /*NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+        builder.setContentTitle(musicInfoLists.get(currentItem).getTitle())
+                .setContentText(musicInfoLists.get(currentItem).getArtist())
+                .setPriority(Notification.PRIORITY_DEFAULT)
+                .setOngoing(true)
+                .setDefaults(Notification.DEFAULT_VIBRATE)
+                .setSmallIcon(R.mipmap.img_saber);
+
+        Intent intent = new Intent(getApplicationContext(), MusicActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        builder.setContentIntent(pendingIntent);
+
+        Notification notify = builder.build();
+        notify.flags = Notification.FLAG_ONGOING_EVENT;
+        manager.notify(1, notify);*/
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.img_saber)
+                        .setContentTitle("My notification")
+                        .setContentText("Hello World!");
+
+        Intent resultIntent = new Intent(this, MusicActivity.class);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(MusicActivity.class);
+        stackBuilder.addNextIntent(resultIntent);
+
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+        mBuilder.setContentIntent(resultPendingIntent);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(1, mBuilder.build());
+
     }
 
     @Override

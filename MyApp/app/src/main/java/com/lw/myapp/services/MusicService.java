@@ -106,7 +106,7 @@ public class MusicService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         int msg = intent.getIntExtra("PLAY_MSG", -1);
-        switch(msg) {
+        switch (msg) {
             case 1:             //next
             case 2:             //previous
             case 3:             //progress
@@ -125,6 +125,7 @@ public class MusicService extends Service {
             default:
                 break;
         }
+
         /*Bundle bundle = intent.getBundleExtra("MUSIC_BUNDLE");
         musicInfoLists = (List<MusicInfo>) bundle.getSerializable("MUSIC_LISTS");*/
         return super.onStartCommand(intent, flags, startId);
@@ -166,7 +167,7 @@ public class MusicService extends Service {
         }
     }
 
-    public void initLrc(){
+    public void initLrc() {
         File f = new File(musicUrl.replace(".mp3", ".lrc"));
         if (!f.exists()) {
             new Thread(new Runnable() {
@@ -200,7 +201,7 @@ public class MusicService extends Service {
 
     public int lrcIndex() {
         long duration = 0;
-        if(player.isPlaying()) {
+        if (player.isPlaying()) {
             currentTime = player.getCurrentPosition();
             duration = player.getDuration();
         }
@@ -234,15 +235,17 @@ public class MusicService extends Service {
         public int getCurrentItem() {
             return currentItem;
         }
-        public boolean getPlayStatus () {
+
+        public boolean getPlayStatus() {
             return isPlay;
         }
+
         public int getCurrentTime() {
             return currentTime;
         }
     }
 
-    private class PlayTypeReceiver extends BroadcastReceiver{
+    private class PlayTypeReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();

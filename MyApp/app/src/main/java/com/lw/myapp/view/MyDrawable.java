@@ -1,7 +1,6 @@
 package com.lw.myapp.view;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.LinearGradient;
@@ -33,15 +32,13 @@ public class MyDrawable extends Drawable {
     public void draw(Canvas canvas) {
         if (canvas == null) return;
         paint = new Paint();
-        /*int weight = bitmap.getWidth();
-        int height = bitmap.getHeight();*/
-        BitmapShader bitmapShader = new BitmapShader(bitmap, TileMode.MIRROR,
+        /*BitmapShader bitmapShader = new BitmapShader(bitmap, TileMode.MIRROR,
                 TileMode.MIRROR);
         Paint paint1 = new Paint();
-        paint1.setShader(bitmapShader);
-        canvas.drawRect(0, 0, weight, height, paint1);
-        //canvas.drawBitmap(bitmap, 0, 0, paint1);
-        //canvas.drawBitmap(bitmap, 0, 0, null);
+        paint1.setShader(bitmapShader);*/
+        bitmap = Bitmap.createScaledBitmap(bitmap, weight, height, true);
+        //canvas.drawRect(0, 0, weight, height, paint1);
+        canvas.drawBitmap(bitmap, 0, 0, null);
         //设置遮罩效果
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
         //设置渐变效果,设置着色器为遮罩着色
